@@ -26,10 +26,22 @@ from cloudbaseinit.metadata.services.osconfigdrive import factory
 
 CONF = cloudbaseinit_conf.CONF
 LOG = oslo_logging.getLogger(__name__)
-
+#vfat",    # Visible device (with partition table).
+#"iso",    # "Raw" format containing ISO bytes.
 CD_TYPES = constant.CD_TYPES
+# Look into optical devices. Only an ISO format could be
+# used here (vfat ignored).
+# "cdrom",
+# Search through physical disks for raw ISO content or vfat filesystems
+# containing configuration drive's content.
+# "hdd",
+# Search through partitions for raw ISO content or through volumes
+# containing configuration drive's content.
+# "partition",
+
 CD_LOCATIONS = constant.CD_LOCATIONS
 
+# BaseOpenStackService
 
 class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
 
@@ -62,9 +74,11 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
 
     def load(self):
         super(ConfigDriveService, self).load()
-
+        # 判断设置是否正确
         self._preprocess_options()
+        # 获取对应平台的驱动，即使用WindowsConfigDriveManager 类进行配置
         self._mgr = factory.get_config_drive_manager()
+        #
         found = self._mgr.get_config_drive_files(
             searched_types=self._searched_types,
             searched_locations=self._searched_locations)
