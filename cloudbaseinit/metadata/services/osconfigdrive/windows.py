@@ -48,10 +48,13 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
 
     def __init__(self):
         super(WindowsConfigDriveManager, self).__init__()
+        # 导入 cloudbaseinit.osutils.windows.WindowsUtils
         self._osutils = osutils_factory.get_os_utils()
 
     def _check_for_config_drive(self, drive):
+        # 获取lable
         label = self._osutils.get_volume_label(drive)
+        # CONFIG_DRIVE_LABEL = 'config-2'
         if label and label.lower() == CONFIG_DRIVE_LABEL and \
             os.path.exists(os.path.join(drive,
                                         'openstack\\latest\\'
@@ -133,10 +136,14 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
             os.remove(iso_file_path)
         return extracted
 
+    # cdrom_iso
     def _get_config_drive_from_cdrom_drive(self):
+        # get_cdrom_drives 返回当前的磁盘路径
         for drive_letter in self._osutils.get_cdrom_drives():
             if self._check_for_config_drive(drive_letter):
+                # target_path 为临时文件夹
                 os.rmdir(self.target_path)
+                #
                 shutil.copytree(drive_letter, self.target_path)
                 return True
 
@@ -175,9 +182,12 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
                 return True
         return False
 
+    #
     def _get_config_drive_files(self, cd_type, cd_location):
+        # 根据参数，赋值不同的函数
         get_config_drive = self.config_drive_type_location.get(
             "{}_{}".format(cd_location, cd_type))
+        # 如果函数赋值成功，则调用
         if get_config_drive:
             return get_config_drive()
         else:
@@ -186,15 +196,17 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
                       {"type": cd_type, "location": cd_location})
         return False
 
+    # 传入searched_types，searched_locations
     def get_config_drive_files(self, searched_types=None,
                                searched_locations=None):
         searched_types = searched_types or []
         searched_locations = searched_locations or []
-
+        # 一次组合，进行查找
         for cd_type, cd_location in itertools.product(searched_types,
                                                       searched_locations):
             LOG.debug('Looking for Config Drive %(type)s in %(location)s',
                       {"type": cd_type, "location": cd_location})
+            # 调用私有函数 _get_config_drive_files
             if self._get_config_drive_files(cd_type, cd_location):
                 return True
 
@@ -202,6 +214,7 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
 
     @property
     def config_drive_type_location(self):
+        # 函数映射
         return {
             "cdrom_iso": self._get_config_drive_from_cdrom_drive,
             "hdd_iso": self._get_config_drive_from_raw_hdd,

@@ -25,8 +25,11 @@ class ClassLoader(object):
 
     def load_class(self, class_path):
         LOG.debug('Loading class \'%s\'' % class_path)
+        # 从后面开始分割，仅分割一次
         parts = class_path.rsplit('.', 1)
+        #
         module = __import__(parts[0], fromlist=parts[1])
+        # 根据类名获取类对象
         return getattr(module, parts[1])
 
     def load_module(self, path):

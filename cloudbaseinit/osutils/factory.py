@@ -18,6 +18,8 @@ from cloudbaseinit.utils import classloader
 
 
 def get_os_utils():
+    # nt 表示window 操作系统类型
+    # posix 表示linux 操作系统类型
     osutils_class_paths = {
         'nt': 'cloudbaseinit.osutils.windows.WindowsUtils',
         'posix': 'cloudbaseinit.osutils.posix.PosixUtils'

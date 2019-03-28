@@ -26,9 +26,11 @@ from cloudbaseinit.metadata.services.osconfigdrive import factory
 
 CONF = cloudbaseinit_conf.CONF
 LOG = oslo_logging.getLogger(__name__)
-#vfat",    # Visible device (with partition table).
+#"vfat",    # Visible device (with partition table).
 #"iso",    # "Raw" format containing ISO bytes.
 CD_TYPES = constant.CD_TYPES
+
+
 # Look into optical devices. Only an ISO format could be
 # used here (vfat ignored).
 # "cdrom",
@@ -38,7 +40,6 @@ CD_TYPES = constant.CD_TYPES
 # Search through partitions for raw ISO content or through volumes
 # containing configuration drive's content.
 # "partition",
-
 CD_LOCATIONS = constant.CD_LOCATIONS
 
 # BaseOpenStackService
@@ -48,7 +49,7 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
     def __init__(self):
         super(ConfigDriveService, self).__init__()
         self._metadata_path = None
-
+    # 私有函数，预处理
     def _preprocess_options(self):
         self._searched_types = set(CONF.config_drive.types)
         self._searched_locations = set(CONF.config_drive.locations)
@@ -74,7 +75,7 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
 
     def load(self):
         super(ConfigDriveService, self).load()
-        # 判断设置是否正确
+        # 调用预处理函数，判断设置是否正确
         self._preprocess_options()
         # 获取对应平台的驱动，即使用WindowsConfigDriveManager 类进行配置
         self._mgr = factory.get_config_drive_manager()
@@ -84,6 +85,7 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
             searched_locations=self._searched_locations)
 
         if found:
+            # target_path 为一随机路径
             self._metadata_path = self._mgr.target_path
             LOG.debug('Metadata copied to folder: %r', self._metadata_path)
         return found

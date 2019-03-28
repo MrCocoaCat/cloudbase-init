@@ -1326,6 +1326,7 @@ class WindowsUtils(base.BaseOSUtils):
     def get_volume_label(self, drive):
         max_label_size = 261
         label = ctypes.create_unicode_buffer(max_label_size)
+        # GetVolumeInformationW
         ret_val = kernel32.GetVolumeInformationW(six.text_type(drive), label,
                                                  max_label_size, 0, 0, 0, 0, 0)
         if ret_val:
@@ -1378,6 +1379,7 @@ class WindowsUtils(base.BaseOSUtils):
             if valid:
                 return pwd
 
+    # 将其转换为列表
     def _split_str_buf_list(self, buf, buf_len):
         i = 0
         value = ''
@@ -1394,17 +1396,34 @@ class WindowsUtils(base.BaseOSUtils):
         return values
 
     def get_logical_drives(self):
+        #
         buf_size = self.MAX_PATH
+        # 创建buffer
         buf = ctypes.create_unicode_buffer(buf_size + 1)
+        # GetLogicalDriveStringsW(DWORD nBufferLength, LPTSTR lpBuffer);获取主机中所有的逻辑驱动器，以驱动器根路径字符串返回。
+        # nBufferLength: 指向的内存空间的大小，以字节为单位。
+        # lpBuffer: 指向存储返回结果字符串的内存空间
+        # 函数的返回值指明了函数调用是否成功，如果成功则返回缓冲区中返回结果的总长度,0 为出错
         buf_len = kernel32.GetLogicalDriveStringsW(buf_size, buf)
         if not buf_len:
             raise exception.WindowsCloudbaseInitException(
                 "GetLogicalDriveStringsW failed: %r")
-
+        # _split_str_buf_list
         return self._split_str_buf_list(buf, buf_len)
 
     def get_cdrom_drives(self):
+        # self.DRIVE_CDROM = 5
+        # drives 为所有驱动器的列表
         drives = self.get_logical_drives()
+        # kernel32 为windows 动态库，GetDriveTypeW 获取磁盘类型
+        # DRIVE_UNKNOWN     = 0; {未知}
+        # DRIVE_NO_ROOT_DIR = 1; {可移动磁盘}
+        # DRIVE_REMOVABLE   = 2; {软盘}
+        # DRIVE_FIXED       = 3; {本地硬盘}
+        # DRIVE_REMOTE      = 4; {网络磁盘}
+        # DRIVE_CDROM       = 5; {CD-ROM}
+        # DRIVE_RAMDISK     = 6; {RAM 磁盘}
+        # 判断是否为光盘，并返回光盘的驱动路径
         return [d for d in drives if kernel32.GetDriveTypeW(d) ==
                 self.DRIVE_CDROM]
 

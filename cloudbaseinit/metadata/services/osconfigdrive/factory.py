@@ -22,11 +22,13 @@ def get_config_drive_manager():
         'win32': 'cloudbaseinit.metadata.services.osconfigdrive.windows.'
         'WindowsConfigDriveManager',
     }
-
+    # sys.platform 获取当前程序运行的平台
+    # 获取其类的路径
     class_path = class_paths.get(sys.platform)
     if not class_path:
         raise NotImplementedError('ConfigDrive is not supported on '
                                   'this platform: %s' % sys.platform)
-
+    # 声明ClassLoader
     cl = classloader.ClassLoader()
+    # 加载类
     return cl.load_class(class_path)()
