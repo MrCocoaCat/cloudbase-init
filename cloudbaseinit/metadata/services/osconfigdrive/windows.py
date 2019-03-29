@@ -54,13 +54,19 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
     def _check_for_config_drive(self, drive):
         # 获取lable
         label = self._osutils.get_volume_label(drive)
+        # checking
         # CONFIG_DRIVE_LABEL = 'config-2'
-        if label and label.lower() == CONFIG_DRIVE_LABEL and \
-            os.path.exists(os.path.join(drive,
+        # 需要含有openstack\\latest\\meta_data.json 文件
+        if label and label.lower() == CONFIG_DRIVE_LABEL:
+            if os.path.exists(os.path.join(drive,
                                         'openstack\\latest\\'
                                         'meta_data.json')):
-            LOG.info('Config Drive found on %s', drive)
-            return True
+                LOG.info('Config Drive found on %s', drive)
+                return True
+            else:
+                LOG.debug('%s\openstack\latest\meta_data.json not found ', drive)
+        else:
+            LOG.debug('The lable of Drive %s is %s ,The lable of Config Drive should be %s', drive, label, CONFIG_DRIVE_LABEL)
         return False
 
     def _get_iso_file_size(self, device):
@@ -142,8 +148,9 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
         for drive_letter in self._osutils.get_cdrom_drives():
             if self._check_for_config_drive(drive_letter):
                 # target_path 为临时文件夹
+                # os.rmdir() 方法用于删除指定路径的目录。仅当这文件夹是空的才可以
                 os.rmdir(self.target_path)
-                #
+                # 将iso 中的文件copy 至 target_path
                 shutil.copytree(drive_letter, self.target_path)
                 return True
 
@@ -187,7 +194,7 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
         # 根据参数，赋值不同的函数
         get_config_drive = self.config_drive_type_location.get(
             "{}_{}".format(cd_location, cd_type))
-        # 如果函数赋值成功，则调用
+        # 如果函数赋值成功，则调用执行该函数
         if get_config_drive:
             return get_config_drive()
         else:
@@ -206,7 +213,7 @@ class WindowsConfigDriveManager(base.BaseConfigDriveManager):
                                                       searched_locations):
             LOG.debug('Looking for Config Drive %(type)s in %(location)s',
                       {"type": cd_type, "location": cd_location})
-            # 调用私有函数 _get_config_drive_files
+            # 调用私有函数 _get_config_drive_files，返回驱动函数
             if self._get_config_drive_files(cd_type, cd_location):
                 return True
 

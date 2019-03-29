@@ -166,6 +166,7 @@ class InitManager(object):
 
     def configure_host(self):
         service = None
+        #  返回osutils = cloudbaseinit.osutils.windows.WindowsUtils
         osutils = osutils_factory.get_os_utils()
 
         if CONF.reset_service_password and sys.platform == 'win32':

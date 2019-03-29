@@ -75,11 +75,11 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
 
     def load(self):
         super(ConfigDriveService, self).load()
-        # 调用预处理函数，判断设置是否正确
+        # 调用预处理函数，判断路径设置是否正确
         self._preprocess_options()
         # 获取对应平台的驱动，即使用WindowsConfigDriveManager 类进行配置
         self._mgr = factory.get_config_drive_manager()
-        #
+        # 找到后已将配置信息 copy 至 target_path 中
         found = self._mgr.get_config_drive_files(
             searched_types=self._searched_types,
             searched_locations=self._searched_locations)
@@ -91,9 +91,12 @@ class ConfigDriveService(baseopenstackservice.BaseOpenStackService):
         return found
 
     def _get_data(self, path):
+        # path.normpath规范化路径
         norm_path = os.path.normpath(os.path.join(self._metadata_path, path))
         try:
+            # rb 以二进制格式打开一个文件用于只读。文件指针将会放在文件的开头。这是默认模式
             with open(norm_path, 'rb') as stream:
+                # 读取整个文件
                 return stream.read()
         except IOError:
             raise base.NotExistingMetadataException()
